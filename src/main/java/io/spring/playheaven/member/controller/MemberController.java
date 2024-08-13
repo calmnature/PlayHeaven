@@ -3,6 +3,7 @@ package io.spring.playheaven.member.controller;
 import io.spring.playheaven.member.dto.LoginDto;
 import io.spring.playheaven.member.dto.MemberRequestDto;
 import io.spring.playheaven.member.dto.MemberResponseDto;
+import io.spring.playheaven.member.dto.MemberUpdateDto;
 import io.spring.playheaven.member.service.MemberService;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -71,5 +72,12 @@ public class MemberController {
         HttpSession session = request.getSession();
         session.setAttribute("member", responseDto);
         return ResponseEntity.status(HttpStatus.OK).body("로그인에 성공하였습니다.");
+    }
+
+    @PatchMapping("/update")
+    public ResponseEntity<String> update(@RequestBody MemberUpdateDto updateDto){
+        boolean success = memberService.update(updateDto);
+        return success ? ResponseEntity.status(HttpStatus.OK).body("회원 정보가 수정되었습니다.") :
+                ResponseEntity.status(HttpStatus.OK).body("회원 정보 변경에 실패하였습니다.\n현재 비밀번호를 다시 확인바랍니다.");
     }
 }

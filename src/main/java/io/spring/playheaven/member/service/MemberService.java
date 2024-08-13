@@ -3,11 +3,13 @@ package io.spring.playheaven.member.service;
 import io.spring.playheaven.member.dto.LoginDto;
 import io.spring.playheaven.member.dto.MemberRequestDto;
 import io.spring.playheaven.member.dto.MemberResponseDto;
+import io.spring.playheaven.member.dto.MemberUpdateDto;
 import io.spring.playheaven.member.entity.Member;
 import io.spring.playheaven.member.repository.MemberRepository;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.naming.AuthenticationException;
 
@@ -48,5 +50,15 @@ public class MemberService {
     public boolean validationAuthcode(String email, String authCode) throws AuthenticationException {
         String savedCode = redisService.getCode(email);
         return authCode.equals(savedCode);
+    }
+
+    @Transactional // Dirty Check로 업데이트
+    public boolean update(MemberUpdateDto updateDto) {
+        Member member = memberRepository.findById(updateDto.getMemberId()).orElse(null);
+        if(member != null && updateDto.getCurPassword().equals(member.getPassword())){
+            member.patch(updateDto);
+            return true;
+        }
+        return false;
     }
 }
