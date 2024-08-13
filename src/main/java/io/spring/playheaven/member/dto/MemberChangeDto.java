@@ -5,7 +5,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class MemberUpdateDto {
+public class MemberChangeDto {
     private Long memberId;
     private String curPassword;
     private String updatePassword;
