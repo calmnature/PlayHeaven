@@ -3,21 +3,20 @@ package io.spring.playheaven.member.service;
 import io.spring.playheaven.member.dto.LoginDto;
 import io.spring.playheaven.member.dto.MemberRequestDto;
 import io.spring.playheaven.member.dto.MemberResponseDto;
-import io.spring.playheaven.member.entity.Auth;
 import io.spring.playheaven.member.entity.Member;
-import io.spring.playheaven.member.repository.AuthRepository;
 import io.spring.playheaven.member.repository.MemberRepository;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
+import javax.naming.AuthenticationException;
 
 @Service
 @RequiredArgsConstructor
 public class MemberService {
     private final MemberRepository memberRepository;
     private final MailService mailService;
-    private final AuthRepository authRepository;
+    private final RedisService redisService;
 
     public boolean emailOverlap(String email) {
         Member member = memberRepository.findByEmail(email);
@@ -40,26 +39,14 @@ public class MemberService {
         return null;
     }
 
-    @Transactional
     public boolean sendAuthcode(String email) throws MessagingException {
         String authCode = mailService.sendSimpleMessage(email);
-        if(authCode != null){
-            Auth auth = authRepository.findByEmail(email);
-            if(auth == null)
-                authRepository.save(new Auth(email, authCode));
-            else
-                auth.patch(authCode);
-            return true;
-        }
-        return false;
+        redisService.setCode(email, authCode);
+        return true;
     }
 
-    public boolean validationAuthcode(String email, String authCode) {
-        Auth auth = authRepository.findByEmail(email);
-        if(auth != null && auth.getAuthCode().equals(authCode)){
-            authRepository.delete(auth);
-            return true;
-        }
-        return false;
+    public boolean validationAuthcode(String email, String authCode) throws AuthenticationException {
+        String savedCode = redisService.getCode(email);
+        return authCode.equals(savedCode);
     }
 }
