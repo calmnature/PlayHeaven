@@ -1,6 +1,7 @@
 package io.spring.playheaven.game.controller;
 
 import io.spring.playheaven.game.dto.GameRegistDto;
+import io.spring.playheaven.game.dto.GameResponseDetailDto;
 import io.spring.playheaven.game.dto.GameResponseDto;
 import io.spring.playheaven.game.entity.Game;
 import io.spring.playheaven.game.service.GameService;
@@ -30,5 +31,11 @@ public class GameController {
         return gameService.allList(pageNo - 1, size);
     }
 
-
+    @GetMapping("/detail/{gameId}")
+    public ResponseEntity<GameResponseDetailDto> detail(@PathVariable Long gameId){
+        GameResponseDetailDto responseDto = gameService.detail(gameId);
+        return responseDto == null ?
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).build() :
+                ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
 }
