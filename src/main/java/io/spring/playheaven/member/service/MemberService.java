@@ -1,9 +1,9 @@
 package io.spring.playheaven.member.service;
 
 import io.spring.playheaven.member.dto.LoginDto;
-import io.spring.playheaven.member.dto.MemberRequestDto;
+import io.spring.playheaven.member.dto.MemberRegistDto;
 import io.spring.playheaven.member.dto.MemberResponseDto;
-import io.spring.playheaven.member.dto.MemberUpdateDto;
+import io.spring.playheaven.member.dto.MemberChangeDto;
 import io.spring.playheaven.member.entity.Member;
 import io.spring.playheaven.member.repository.MemberRepository;
 import jakarta.mail.MessagingException;
@@ -30,7 +30,7 @@ public class MemberService {
         return member != null;
     }
 
-    public void regist(MemberRequestDto memberRequestDto) {
+    public void regist(MemberRegistDto memberRequestDto) {
         memberRepository.save(Member.toEntity(memberRequestDto));
     }
 
@@ -53,10 +53,20 @@ public class MemberService {
     }
 
     @Transactional // Dirty Check로 업데이트
-    public boolean update(MemberUpdateDto updateDto) {
+    public boolean update(MemberChangeDto updateDto) {
         Member member = memberRepository.findById(updateDto.getMemberId()).orElse(null);
         if(member != null && updateDto.getCurPassword().equals(member.getPassword())){
             member.patch(updateDto);
+            return true;
+        }
+        return false;
+    }
+
+    @Transactional
+    public boolean delete(MemberChangeDto deleteDto) {
+        Member member = memberRepository.findById(deleteDto.getMemberId()).orElse(null);
+        if(member != null && deleteDto.getCurPassword().equals(member.getPassword())){
+            member.changeDeleted();
             return true;
         }
         return false;

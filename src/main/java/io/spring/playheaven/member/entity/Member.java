@@ -1,7 +1,7 @@
 package io.spring.playheaven.member.entity;
 
-import io.spring.playheaven.member.dto.MemberRequestDto;
-import io.spring.playheaven.member.dto.MemberUpdateDto;
+import io.spring.playheaven.member.dto.MemberRegistDto;
+import io.spring.playheaven.member.dto.MemberChangeDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -32,7 +32,7 @@ public class Member extends BaseTime {
 
     private Boolean isDeleted;
 
-    public static Member toEntity(MemberRequestDto memberRequestDto){
+    public static Member toEntity(MemberRegistDto memberRequestDto){
         return new Member(
                 null,
                 memberRequestDto.getEmail(),
@@ -44,10 +44,14 @@ public class Member extends BaseTime {
         );
     }
 
-    public void patch(MemberUpdateDto updateDto) {
+    public void patch(MemberChangeDto updateDto) {
         if(updateDto.getUpdatePassword() != null)
             this.password = updateDto.getUpdatePassword();
         if(updateDto.getNickname() != null)
             this.nickname = updateDto.getNickname();
+    }
+
+    public void changeDeleted() {
+        this.isDeleted = !this.isDeleted;
     }
 }
