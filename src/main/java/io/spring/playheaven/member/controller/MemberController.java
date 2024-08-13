@@ -3,7 +3,6 @@ package io.spring.playheaven.member.controller;
 import io.spring.playheaven.member.dto.LoginDto;
 import io.spring.playheaven.member.dto.MemberRequestDto;
 import io.spring.playheaven.member.dto.MemberResponseDto;
-import io.spring.playheaven.member.service.MailService;
 import io.spring.playheaven.member.service.MemberService;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j(topic = "MemberController")
 public class MemberController {
     private final MemberService memberService;
-    private final MailService mailService;
 
     @GetMapping("/email/overlap/{email}")
     public ResponseEntity<String> emailOverlap(@PathVariable String email){
@@ -32,9 +30,17 @@ public class MemberController {
 
     @GetMapping("/email/auth/{email}")
     public ResponseEntity<String> requestAuthcode(@PathVariable String email) throws MessagingException {
-        boolean isSend = mailService.sendSimpleMessage(email);
-        return isSend ? ResponseEntity.status(HttpStatus.BAD_REQUEST).body("인증 코드가 전송되었습니다.") :
-                ResponseEntity.status(HttpStatus.OK).body("인증 코드 발급에 실패하였습니다.");
+        boolean isSend = memberService.sendAuthcode(email);
+        return isSend ? ResponseEntity.status(HttpStatus.OK).body("인증 코드가 전송되었습니다.") :
+                ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("인증 코드 전송이 실패하였습니다.");
+    }
+
+    @PostMapping("/email/auth")
+    public ResponseEntity<String> validateAuthcode(@RequestParam(name = "email")String email,
+                                                  @RequestParam(name = "auth")String authCode) {
+        boolean isSuccess = memberService.validationAuthcode(email, authCode);
+        return isSuccess ? ResponseEntity.status(HttpStatus.OK).body("이메일 인증에 성공하였습니다.") :
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body("이메일 인증에 실패하였습니다.");
     }
 
     @GetMapping("/nickname/overlap/{nickname}")
