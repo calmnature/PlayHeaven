@@ -18,7 +18,7 @@ public class MailService {
     @Value("{spring.mail.username}")
     private static String senderEmail;
 
-    public String createNumber() {
+    public String createCode() {
         Random random = new Random();
         StringBuilder key = new StringBuilder();
 
@@ -33,7 +33,7 @@ public class MailService {
         return key.toString();
     }
 
-    public MimeMessage createMail(String mail, String number) throws MessagingException {
+    public MimeMessage createMail(String mail, String authCode) throws MessagingException {
         MimeMessage message = javaMailSender.createMimeMessage();
 
         message.setFrom(senderEmail);
@@ -41,7 +41,7 @@ public class MailService {
         message.setSubject("이메일 인증");
         String body = "";
         body += "<h3>요청하신 인증 번호입니다.</h3>";
-        body += "<h1>" + number + "</h1>";
+        body += "<h1>" + authCode + "</h1>";
         body += "<h3>감사합니다.</h3>";
         message.setText(body, "UTF-8", "html");
 
@@ -50,9 +50,9 @@ public class MailService {
 
     // 메일 발송
     public boolean sendSimpleMessage(String sendEmail) throws MessagingException {
-        String number = createNumber(); // 랜덤 인증번호 생성
+        String authCode = createCode(); // 랜덤 인증번호 생성
 
-        MimeMessage message = createMail(sendEmail, number); // 메일 생성
+        MimeMessage message = createMail(sendEmail, authCode); // 메일 생성
         try {
             javaMailSender.send(message); // 메일 발송
             return true;
