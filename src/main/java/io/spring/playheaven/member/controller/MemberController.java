@@ -1,9 +1,9 @@
 package io.spring.playheaven.member.controller;
 
 import io.spring.playheaven.member.dto.LoginDto;
-import io.spring.playheaven.member.dto.MemberRequestDto;
+import io.spring.playheaven.member.dto.MemberRegistDto;
 import io.spring.playheaven.member.dto.MemberResponseDto;
-import io.spring.playheaven.member.dto.MemberUpdateDto;
+import io.spring.playheaven.member.dto.MemberChangeDto;
 import io.spring.playheaven.member.service.MemberService;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -56,7 +56,7 @@ public class MemberController {
     }
 
     @PostMapping("/regist")
-    public ResponseEntity<String> regist(@RequestBody MemberRequestDto memberRequestDto){
+    public ResponseEntity<String> regist(@RequestBody MemberRegistDto memberRequestDto){
         memberService.regist(memberRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body("회원 가입에 성공하였습니다.");
     }
@@ -75,9 +75,16 @@ public class MemberController {
     }
 
     @PatchMapping("/update")
-    public ResponseEntity<String> update(@RequestBody MemberUpdateDto updateDto){
+    public ResponseEntity<String> update(@RequestBody MemberChangeDto updateDto){
         boolean success = memberService.update(updateDto);
         return success ? ResponseEntity.status(HttpStatus.OK).body("회원 정보가 수정되었습니다.") :
                 ResponseEntity.status(HttpStatus.OK).body("회원 정보 변경에 실패하였습니다.\n현재 비밀번호를 다시 확인바랍니다.");
+    }
+
+    @PatchMapping("/delete")
+    public ResponseEntity<String> delete(@RequestBody MemberChangeDto deleteDto){
+        boolean success = memberService.delete(deleteDto);
+        return success ? ResponseEntity.status(HttpStatus.OK).body("회원 탈퇴에 성공하였습니다.") :
+                ResponseEntity.status(HttpStatus.OK).body("회원 탈퇴에 실패하였습니다.\n비밀번호를 다시 확인바랍니다.");
     }
 }
