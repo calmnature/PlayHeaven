@@ -13,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.naming.AuthenticationException;
+
 @RestController
 @RequestMapping("/api/member")
 @RequiredArgsConstructor
@@ -37,7 +39,7 @@ public class MemberController {
 
     @PostMapping("/email/auth")
     public ResponseEntity<String> validateAuthcode(@RequestParam(name = "email")String email,
-                                                  @RequestParam(name = "auth")String authCode) {
+                                                  @RequestParam(name = "auth")String authCode) throws AuthenticationException {
         boolean isSuccess = memberService.validationAuthcode(email, authCode);
         return isSuccess ? ResponseEntity.status(HttpStatus.OK).body("이메일 인증에 성공하였습니다.") :
                 ResponseEntity.status(HttpStatus.BAD_REQUEST).body("이메일 인증에 실패하였습니다.");
