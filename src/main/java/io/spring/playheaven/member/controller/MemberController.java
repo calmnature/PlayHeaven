@@ -3,7 +3,9 @@ package io.spring.playheaven.member.controller;
 import io.spring.playheaven.member.dto.LoginDto;
 import io.spring.playheaven.member.dto.MemberRequestDto;
 import io.spring.playheaven.member.dto.MemberResponseDto;
+import io.spring.playheaven.member.service.MailService;
 import io.spring.playheaven.member.service.MemberService;
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j(topic = "MemberController")
 public class MemberController {
     private final MemberService memberService;
+    private final MailService mailService;
 
     @GetMapping("/email/overlap/{email}")
     public ResponseEntity<String> emailOverlap(@PathVariable String email){
@@ -25,6 +28,13 @@ public class MemberController {
 
         return overlap ? ResponseEntity.status(HttpStatus.BAD_REQUEST).body("사용 불가능한 이메일 입니다.") :
                 ResponseEntity.status(HttpStatus.OK).body("사용 가능한 이메일 입니다.");
+    }
+
+    @GetMapping("/email/auth/{email}")
+    public ResponseEntity<String> requestAuthcode(@PathVariable String email) throws MessagingException {
+        boolean isSend = mailService.sendSimpleMessage(email);
+        return isSend ? ResponseEntity.status(HttpStatus.BAD_REQUEST).body("인증 코드가 전송되었습니다.") :
+                ResponseEntity.status(HttpStatus.OK).body("인증 코드 발급에 실패하였습니다.");
     }
 
     @GetMapping("/nickname/overlap/{nickname}")
