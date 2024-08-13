@@ -1,6 +1,7 @@
 package io.spring.playheaven.game.service;
 
 import io.spring.playheaven.game.dto.GameRegistDto;
+import io.spring.playheaven.game.dto.GameResponseDetailDto;
 import io.spring.playheaven.game.dto.GameResponseDto;
 import io.spring.playheaven.game.entity.Game;
 import io.spring.playheaven.game.repository.GameRepository;
@@ -39,5 +40,12 @@ public class GameService {
                         .map(GameResponseDto::new)
                         .collect(Collectors.toList())
         );
+    }
+
+    public GameResponseDetailDto detail(Long gameId) {
+        Game game = gameRepository.findByIdAndSaledIsTrue(gameId).orElse(null);
+        if(game != null)
+            return new GameResponseDetailDto(game);
+        return null;
     }
 }
