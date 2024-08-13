@@ -1,6 +1,7 @@
 package io.spring.playheaven.member.entity;
 
 import io.spring.playheaven.member.dto.MemberRequestDto;
+import io.spring.playheaven.member.dto.MemberUpdateDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -41,5 +42,12 @@ public class Member extends BaseTime {
                 memberRequestDto.getPhone(),
                 false
         );
+    }
+
+    public void patch(MemberUpdateDto updateDto) {
+        if(updateDto.getUpdatePassword() != null)
+            this.password = updateDto.getUpdatePassword();
+        if(updateDto.getNickname() != null)
+            this.nickname = updateDto.getNickname();
     }
 }
