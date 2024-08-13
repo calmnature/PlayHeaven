@@ -20,7 +20,7 @@ public class Game extends BaseTime{
     private int price;
     private int eventStock;
     private String detail;
-    private boolean isSaled;
+    private boolean saled;
     private Long memberId;
 
     public static Game toEntity(GameRegistDto gameRegistDto){
