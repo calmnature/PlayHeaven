@@ -43,7 +43,7 @@ public class GameService {
     }
 
     public GameResponseDetailDto detail(Long gameId) {
-        Game game = gameRepository.findByIdAndSaledIsTrue(gameId).orElse(null);
+        Game game = gameRepository.findByGameIdAndSaledIsTrue(gameId).orElse(null);
         if(game != null)
             return new GameResponseDetailDto(game);
         return null;

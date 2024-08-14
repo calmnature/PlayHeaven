@@ -14,7 +14,7 @@ public class GameResponseDto {
     private LocalDateTime modifyAt;
 
     public GameResponseDto(Game game){
-        this.gameId = game.getId();
+        this.gameId = game.getGameId();
         this.gameName = game.getGameName();
         this.price = game.getPrice();
         this.createAt = game.getCreateAt();
