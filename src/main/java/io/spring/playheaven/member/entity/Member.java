@@ -30,7 +30,7 @@ public class Member extends BaseTime {
     @Column(nullable = false)
     private String phone;
 
-    private Boolean isDeleted;
+    private Boolean deleted;
 
     public static Member toEntity(MemberRegistDto memberRequestDto){
         return new Member(
@@ -52,6 +52,6 @@ public class Member extends BaseTime {
     }
 
     public void changeDeleted() {
-        this.isDeleted = !this.isDeleted;
+        this.deleted = !this.deleted;
     }
 }
