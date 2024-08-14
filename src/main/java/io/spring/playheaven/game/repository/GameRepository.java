@@ -14,7 +14,7 @@ public interface GameRepository extends JpaRepository<Game, Long> {
 
     Page<Game> findAllBySaledIsTrue(Pageable pageable);
 
-    Optional<Game> findByIdAndSaledIsTrue(Long gameId);
+    Optional<Game> findByGameIdAndSaledIsTrue(Long gameId);
 }
 
 

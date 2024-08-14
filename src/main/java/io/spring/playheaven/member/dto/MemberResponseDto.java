@@ -18,7 +18,7 @@ public class MemberResponseDto {
     private LocalDateTime modifyAt;
 
     public MemberResponseDto(Member member){
-        this.id = member.getId();
+        this.id = member.getMemberId();
         this.email = member.getEmail();
         this.password = member.getPassword();
         this.name = member.getName();
