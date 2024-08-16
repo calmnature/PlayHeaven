@@ -4,6 +4,7 @@ import io.spring.playheaven.member.dto.MemberRegistDto;
 import io.spring.playheaven.member.dto.MemberChangeDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -11,6 +12,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Member extends BaseTime {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long memberId;

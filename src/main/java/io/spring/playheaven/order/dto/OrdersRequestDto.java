@@ -8,7 +8,7 @@ import java.util.List;
 
 @Getter
 public class OrdersRequestDto {
-    private Member member;
+    private Long memberId;
     private List<Game> gameList;
 
     public int getTotalPrice(){

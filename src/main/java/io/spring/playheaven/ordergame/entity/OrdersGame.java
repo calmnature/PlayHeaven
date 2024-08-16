@@ -9,12 +9,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class OrdersGame {
     @Id @GeneratedValue
-    private Long orderGameId;
+    private Long ordersGameId;
 
     private int price;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id")
+    @JoinColumn(name = "orders_id")
     private Orders orders;
 
     @ManyToOne
@@ -22,6 +22,7 @@ public class OrdersGame {
     private Game game;
 
     public OrdersGame(Orders orders, Game game){
+        this.price = game.getPrice();
         this.orders = orders;
         this.game = game;
     }

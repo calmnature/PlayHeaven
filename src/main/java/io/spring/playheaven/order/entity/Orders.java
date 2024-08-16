@@ -15,7 +15,7 @@ import java.time.format.DateTimeFormatter;
 @AllArgsConstructor
 public class Orders extends BaseTime {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long orderId;
+    private Long ordersId;
 
     private String orderNumber;
 
@@ -34,7 +34,7 @@ public class Orders extends BaseTime {
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")),
                 ordersRequestDto.getTotalPrice(),
                 OrdersStatus.PURCHASE,
-                ordersRequestDto.getMember()
+                Member.builder().memberId(ordersRequestDto.getMemberId()).build()
         );
     }
 }
