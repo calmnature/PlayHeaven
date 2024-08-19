@@ -50,7 +50,7 @@ public class OrderService {
         return convertToDtoList(orderGameList);
     }
 
-    @Scheduled(cron = "* 0/5 * * * *")
+    @Scheduled(cron = "0 0/5 * * * *")
     @Transactional
     protected void updateOrderStatus(){
         List<Order> allList = orderRepository.findAllByOrderStatus(OrderStatus.PURCHASE);
