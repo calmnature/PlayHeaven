@@ -1,13 +1,12 @@
 package io.spring.playheaven.order.dto;
 
 import io.spring.playheaven.game.entity.Game;
-import io.spring.playheaven.member.entity.Member;
 import lombok.Getter;
 
 import java.util.List;
 
 @Getter
-public class OrdersRequestDto {
+public class OrderRequestDto {
     private Long memberId;
     private List<Game> gameList;
 

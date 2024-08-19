@@ -1,8 +1,8 @@
 package io.spring.playheaven.order.entity;
 
 import io.spring.playheaven.member.entity.Member;
-import io.spring.playheaven.order.constant.OrdersStatus;
-import io.spring.playheaven.order.dto.OrdersRequestDto;
+import io.spring.playheaven.order.constant.OrderStatus;
+import io.spring.playheaven.order.dto.OrderRequestDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,27 +17,28 @@ import java.time.format.DateTimeFormatter;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class Orders extends BaseTime {
+@Table(name = "Orders")
+public class Order extends BaseTime {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long ordersId;
+    private Long orderId;
 
     private String orderNumber;
 
     private int totalPrice;
 
     @Enumerated(EnumType.STRING)
-    private OrdersStatus orderStatus;
+    private OrderStatus orderStatus;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
 
-    public static Orders toEntity (OrdersRequestDto ordersRequestDto) {
-        return new Orders(
+    public static Order toEntity (OrderRequestDto ordersRequestDto) {
+        return new Order(
                 null,
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")),
                 ordersRequestDto.getTotalPrice(),
-                OrdersStatus.PURCHASE,
+                OrderStatus.PURCHASE,
                 Member.builder().memberId(ordersRequestDto.getMemberId()).build()
         );
     }
