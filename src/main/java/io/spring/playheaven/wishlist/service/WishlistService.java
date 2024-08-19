@@ -70,4 +70,20 @@ public class WishlistService {
 
         return new WishlistResponseDto(wishlist.getWishlistId(), wishlist.getTotalPrice(), gameList);
     }
+
+    @Transactional
+    public boolean delete(Long memberId, Long gameId) {
+        Wishlist wishlist = wishlistRepository.findByMember_MemberId(memberId).orElse(null);
+        if(wishlist != null){
+            WishlistGame wishlistGame = wishlistGameRepository.findByWishlist_WishlistIdAndGame_GameId(wishlist.getWishlistId(), gameId).orElse(null);
+            if(wishlistGame != null){
+                wishlistGameRepository.delete(wishlistGame);
+                log.warn("이전 총 가격 = {}", wishlist.getTotalPrice());
+                wishlist.setTotalPrice(wishlist.getTotalPrice() - wishlistGame.getPrice());
+                log.warn("이후 총 가격 = {}", wishlist.getTotalPrice());
+                return true;
+            }
+        }
+        return false;
+    }
 }
