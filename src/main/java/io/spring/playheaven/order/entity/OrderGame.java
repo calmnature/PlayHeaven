@@ -1,7 +1,6 @@
-package io.spring.playheaven.ordergame.entity;
+package io.spring.playheaven.order.entity;
 
 import io.spring.playheaven.game.entity.Game;
-import io.spring.playheaven.order.entity.Order;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
