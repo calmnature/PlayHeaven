@@ -5,17 +5,21 @@ import io.spring.playheaven.order.constant.OrdersStatus;
 import io.spring.playheaven.order.dto.OrdersRequestDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Entity
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 public class Orders extends BaseTime {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long orderId;
+    private Long ordersId;
 
     private String orderNumber;
 
@@ -34,7 +38,7 @@ public class Orders extends BaseTime {
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")),
                 ordersRequestDto.getTotalPrice(),
                 OrdersStatus.PURCHASE,
-                ordersRequestDto.getMember()
+                Member.builder().memberId(ordersRequestDto.getMemberId()).build()
         );
     }
 }
