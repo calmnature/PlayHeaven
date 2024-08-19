@@ -5,14 +5,18 @@ import io.spring.playheaven.order.constant.OrdersStatus;
 import io.spring.playheaven.order.dto.OrdersRequestDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Entity
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 public class Orders extends BaseTime {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long ordersId;
