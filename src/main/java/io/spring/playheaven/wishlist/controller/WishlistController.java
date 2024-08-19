@@ -29,4 +29,12 @@ public class WishlistController {
         return wishlistResponseDto != null ? ResponseEntity.status(HttpStatus.OK).body(wishlistResponseDto) :
                                                 ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<String> delete(@RequestParam(name = "memberId")Long memberId,
+                                         @RequestParam(name = "gameId")Long gameId){
+        boolean success = wishlistService.delete(memberId, gameId);
+        return success ? ResponseEntity.status(HttpStatus.OK).body("위시리스트 삭제에 성공하였습니다.") :
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body("위시리스트 삭제에 실패하였습니다.");
+    }
 }
