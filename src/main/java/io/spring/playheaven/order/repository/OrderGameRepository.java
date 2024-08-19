@@ -1,7 +1,7 @@
-package io.spring.playheaven.ordergame.repository;
+package io.spring.playheaven.order.repository;
 
 import io.spring.playheaven.order.entity.Order;
-import io.spring.playheaven.ordergame.entity.OrderGame;
+import io.spring.playheaven.order.entity.OrderGame;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
