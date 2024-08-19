@@ -4,10 +4,7 @@ import io.spring.playheaven.member.entity.Member;
 import io.spring.playheaven.order.constant.OrderStatus;
 import io.spring.playheaven.order.dto.OrderRequestDto;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -26,6 +23,7 @@ public class Order extends BaseTime {
 
     private int totalPrice;
 
+    @Setter
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
 
@@ -42,4 +40,5 @@ public class Order extends BaseTime {
                 Member.builder().memberId(ordersRequestDto.getMemberId()).build()
         );
     }
+
 }

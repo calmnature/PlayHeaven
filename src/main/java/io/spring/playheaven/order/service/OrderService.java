@@ -1,10 +1,11 @@
 package io.spring.playheaven.order.service;
 
+import io.spring.playheaven.order.constant.OrderStatus;
 import io.spring.playheaven.order.dto.GameInfo;
 import io.spring.playheaven.order.dto.OrderRequestDto;
+import io.spring.playheaven.order.dto.OrderResponseDto;
 import io.spring.playheaven.order.entity.Order;
 import io.spring.playheaven.order.repository.OrderRepository;
-import io.spring.playheaven.order.dto.OrderResponseDto;
 import io.spring.playheaven.ordergame.entity.OrderGame;
 import io.spring.playheaven.ordergame.repository.OrderGameRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,8 +13,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -43,6 +48,15 @@ public class OrderService {
         List<OrderGame> orderGameList = orderGameRepository.findAllByOrderIn(orderList);
 
         return convertToDtoList(orderGameList);
+    }
+
+    @Scheduled(cron = "* 0/5 * * * *")
+    @Transactional
+    protected void updateOrderStatus(){
+        List<Order> allList = orderRepository.findAllByOrderStatus(OrderStatus.PURCHASE);
+        allList.stream()
+                .filter(order -> Duration.between(order.getCreateAt(), LocalDateTime.now()).toHours() >= 24)
+                .forEach(order -> order.setOrderStatus(OrderStatus.CONFIRM));
     }
 
     private List<OrderResponseDto> convertToDtoList(List<OrderGame> orderGameList){
