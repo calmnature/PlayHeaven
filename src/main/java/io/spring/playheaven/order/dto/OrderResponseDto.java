@@ -14,8 +14,8 @@ import java.util.List;
 @ToString
 public class OrderResponseDto {
     private Long orderId;
-    private String ordersNumber;
+    private String orderNumber;
     private int totalPrice;
-    private OrderStatus ordersStatus;
+    private OrderStatus orderStatus;
     private List<GameInfo> gameList;
 }
