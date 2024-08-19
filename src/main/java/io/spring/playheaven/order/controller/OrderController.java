@@ -32,4 +32,12 @@ public class OrderController {
         return !responseDtoList.isEmpty() ? ResponseEntity.status(HttpStatus.OK).body(responseDtoList) :
                 ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
+
+    @PostMapping("/refund")
+    public ResponseEntity<String> refund(@RequestParam(name = "memberId")Long memberId,
+                                         @RequestParam(name = "orderId")Long orderId){
+        boolean success = orderService.refund(memberId, orderId);
+        return success ? ResponseEntity.status(HttpStatus.OK).body("환불 처리가 완료되었습니다.") :
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body("이미 환불 처리가 되었거나 구매 24시간이 경과되었습니다.\n구매 확정이 되었다면 환불이 불가합니다.");
+    }
 }

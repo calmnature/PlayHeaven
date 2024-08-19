@@ -50,6 +50,18 @@ public class OrderService {
         return convertToDtoList(orderGameList);
     }
 
+    @Transactional
+    public boolean refund(Long memberId, Long orderId) {
+        Order order = orderRepository.findById(orderId).orElse(null);
+        if(order != null && order.getMember().getMemberId().equals(memberId)){
+            if(Duration.between(order.getCreateAt(), LocalDateTime.now()).toHours() <= 24 && order.getOrderStatus().equals(OrderStatus.PURCHASE)){
+                order.setOrderStatus(OrderStatus.REFUND);
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Scheduled(cron = "0 0/5 * * * *")
     @Transactional
     protected void updateOrderStatus(){
