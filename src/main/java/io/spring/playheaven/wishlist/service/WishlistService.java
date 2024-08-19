@@ -3,16 +3,27 @@ package io.spring.playheaven.wishlist.service;
 import io.spring.playheaven.game.entity.Game;
 import io.spring.playheaven.game.repository.GameRepository;
 import io.spring.playheaven.member.entity.Member;
+import io.spring.playheaven.wishlist.dto.GameInfo;
+import io.spring.playheaven.wishlist.dto.WishlistResponseDto;
 import io.spring.playheaven.wishlist.entity.Wishlist;
 import io.spring.playheaven.wishlist.entity.WishlistGame;
 import io.spring.playheaven.wishlist.repository.WishlistGameRepository;
 import io.spring.playheaven.wishlist.repository.WishlistRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
+
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class WishlistService {
     private final WishlistRepository wishlistRepository;
     private final WishlistGameRepository wishlistGameRepository;
@@ -40,5 +51,23 @@ public class WishlistService {
         wishlistGameRepository.save(wishlistGame);
         return true;
 
+    }
+
+    public WishlistResponseDto list(Long memberId, int pageNo, int size) {
+        Pageable pageable = PageRequest.of(pageNo, size, Sort.by(Sort.Direction.DESC, "wishlistGameId"));
+        Page<WishlistGame> page = wishlistGameRepository.findAll(pageable);
+        List<WishlistGame> wishlistGameList = page.getContent();
+
+        List<GameInfo> gameList = wishlistGameList.stream()
+                                        .map(wishlistGame ->
+                                            new GameInfo(wishlistGame.getGame().getGameId(),
+                                                    wishlistGame.getGame().getGameName(),
+                                                    wishlistGame.getGame().getPrice()))
+                                        .toList();
+        Wishlist wishlist = wishlistRepository.findByMember_MemberId(memberId).orElse(null);
+
+        if(wishlist == null) return null;
+
+        return new WishlistResponseDto(wishlist.getWishlistId(), wishlist.getTotalPrice(), gameList);
     }
 }
