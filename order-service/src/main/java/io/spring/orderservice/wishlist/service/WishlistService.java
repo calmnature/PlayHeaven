@@ -1,10 +1,10 @@
 package io.spring.orderservice.wishlist.service;
 
-import io.spring.orderservice.wishlist.dto.GameDto;
+import io.spring.orderservice.common.dto.GameDto;
 import io.spring.orderservice.wishlist.dto.WishlistResponseDto;
 import io.spring.orderservice.wishlist.entity.Wishlist;
 import io.spring.orderservice.wishlist.entity.WishlistGame;
-import io.spring.orderservice.wishlist.fegin.GameApi;
+import io.spring.orderservice.common.feign.GameApi;
 import io.spring.orderservice.wishlist.repository.WishlistGameRepository;
 import io.spring.orderservice.wishlist.repository.WishlistRepository;
 import lombok.RequiredArgsConstructor;

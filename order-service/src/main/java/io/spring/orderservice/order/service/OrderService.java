@@ -1,12 +1,12 @@
 package io.spring.orderservice.order.service;
 
+import io.spring.orderservice.common.dto.GameDto;
+import io.spring.orderservice.common.feign.GameApi;
 import io.spring.orderservice.order.constant.OrderStatus;
-import io.spring.orderservice.order.dto.GameDto;
 import io.spring.orderservice.order.dto.OrderRequestDto;
 import io.spring.orderservice.order.dto.OrderResponseDto;
 import io.spring.orderservice.order.entity.Order;
 import io.spring.orderservice.order.entity.OrderGame;
-import io.spring.orderservice.order.feign.GameApi;
 import io.spring.orderservice.order.repository.OrderGameRepository;
 import io.spring.orderservice.order.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;

@@ -1,4 +1,4 @@
-package io.spring.orderservice.wishlist.dto;
+package io.spring.orderservice.common.dto;
 
 import lombok.Builder;
 import lombok.Getter;
