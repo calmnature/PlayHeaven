@@ -1,6 +1,6 @@
-package io.spring.orderservice.wishlist.fegin;
+package io.spring.orderservice.common.feign;
 
-import io.spring.orderservice.wishlist.dto.GameDto;
+import io.spring.orderservice.common.dto.GameDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

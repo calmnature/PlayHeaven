@@ -1,5 +1,6 @@
 package io.spring.orderservice.order.dto;
 
+import io.spring.orderservice.common.dto.GameDto;
 import io.spring.orderservice.order.constant.OrderStatus;
 import lombok.*;
 
