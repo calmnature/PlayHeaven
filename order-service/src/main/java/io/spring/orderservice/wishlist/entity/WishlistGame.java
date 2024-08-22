@@ -1,6 +1,7 @@
+// TODO : 중간 테이블 필요 없을 거 같음?
+
 package io.spring.orderservice.wishlist.entity;
 
-import io.spring.orderservice.game.entity.Game;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,19 +10,15 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class WishlistGame {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long wishlistGameId;
     private int price;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "wishlist_id")
-    private Wishlist wishlist;
+    private Long wishlistId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "game_id")
-    private Game game;
+    private Long gameId;
 }

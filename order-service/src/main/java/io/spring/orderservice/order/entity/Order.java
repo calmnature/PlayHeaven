@@ -1,6 +1,5 @@
 package io.spring.orderservice.order.entity;
 
-import io.spring.orderservice.member.entity.Member;
 import io.spring.orderservice.order.constant.OrderStatus;
 import io.spring.orderservice.order.dto.OrderRequestDto;
 import jakarta.persistence.*;
@@ -27,17 +26,15 @@ public class Order extends BaseTime {
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
-    private Member member;
+    private Long memberId;
 
-    public static Order toEntity (OrderRequestDto ordersRequestDto) {
+    public static Order toEntity (int totalPrice, Long memberId) {
         return new Order(
                 null,
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")),
-                ordersRequestDto.getTotalPrice(),
+                totalPrice,
                 OrderStatus.PURCHASE,
-                Member.builder().memberId(ordersRequestDto.getMemberId()).build()
+                memberId
         );
     }
 

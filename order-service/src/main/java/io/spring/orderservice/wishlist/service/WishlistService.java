@@ -1,12 +1,10 @@
 package io.spring.orderservice.wishlist.service;
 
-import io.spring.orderservice.game.entity.Game;
-import io.spring.orderservice.game.repository.GameRepository;
-import io.spring.orderservice.member.entity.Member;
-import io.spring.orderservice.wishlist.dto.GameInfo;
+import io.spring.orderservice.wishlist.dto.GameDto;
 import io.spring.orderservice.wishlist.dto.WishlistResponseDto;
 import io.spring.orderservice.wishlist.entity.Wishlist;
 import io.spring.orderservice.wishlist.entity.WishlistGame;
+import io.spring.orderservice.wishlist.fegin.GameApi;
 import io.spring.orderservice.wishlist.repository.WishlistGameRepository;
 import io.spring.orderservice.wishlist.repository.WishlistRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,25 +25,25 @@ import java.util.List;
 public class WishlistService {
     private final WishlistRepository wishlistRepository;
     private final WishlistGameRepository wishlistGameRepository;
-    private final GameRepository gameRepository;
+    private final GameApi gameApi;
 
     @Transactional
     public boolean regist(Long memberId, Long gameId) {
         // 위시리스트에 memberId가 있는 지 조회
-        Wishlist wishlist = wishlistRepository.findByMember_MemberId(memberId).orElse(null);
+        Wishlist wishlist = wishlistRepository.findByMemberId(memberId);
         if(wishlist == null){
-            wishlist = wishlistRepository.save(new Wishlist(Member.builder().memberId(memberId).build()));
+            wishlist = wishlistRepository.save(Wishlist.builder().memberId(memberId).build());
         }
 
-        Game game = gameRepository.findById(gameId).orElse(null);
+        GameDto game = gameApi.findById(gameId);
         if(game == null || !game.isSaled()) return false;
 
         wishlist.setTotalPrice(wishlist.getTotalPrice() + game.getPrice());
 
         WishlistGame wishlistGame = WishlistGame.builder()
                 .price(game.getPrice())
-                .wishlist(wishlist)
-                .game(game)
+                .wishlistId(wishlist.getWishlistId())
+                .gameId(gameId)
                 .build();
 
         wishlistGameRepository.save(wishlistGame);
@@ -55,32 +53,31 @@ public class WishlistService {
 
     public WishlistResponseDto list(Long memberId, int pageNo, int size) {
         Pageable pageable = PageRequest.of(pageNo, size, Sort.by(Sort.Direction.DESC, "wishlistGameId"));
+        // TODO : 해당 Wishlist에 담긴 게임 정보를 List로 만들어서 WishlistResponseDto로 변환
         Page<WishlistGame> page = wishlistGameRepository.findAll(pageable);
         List<WishlistGame> wishlistGameList = page.getContent();
 
-        List<GameInfo> gameList = wishlistGameList.stream()
-                                        .map(wishlistGame ->
-                                            new GameInfo(wishlistGame.getGame().getGameId(),
-                                                    wishlistGame.getGame().getGameName(),
-                                                    wishlistGame.getGame().getPrice()))
-                                        .toList();
-        Wishlist wishlist = wishlistRepository.findByMember_MemberId(memberId).orElse(null);
+        List<GameDto> gameList = gameApi.subFind(
+                wishlistGameList.stream().map(WishlistGame::getGameId).toList()
+        );
+
+        Wishlist wishlist = wishlistRepository.findByMemberId(memberId);
 
         if(wishlist == null) return null;
 
+        // TODO : wishlist에 추가 필요
         return new WishlistResponseDto(wishlist.getWishlistId(), wishlist.getTotalPrice(), gameList);
     }
 
     @Transactional
     public boolean delete(Long memberId, Long gameId) {
-        Wishlist wishlist = wishlistRepository.findByMember_MemberId(memberId).orElse(null);
+        Wishlist wishlist = wishlistRepository.findByMemberId(memberId);
+        // TODO : MemberId에 해당하는 위시리스트에 gameId가 등록되어있으면 삭제
         if(wishlist != null){
-            WishlistGame wishlistGame = wishlistGameRepository.findByWishlist_WishlistIdAndGame_GameId(wishlist.getWishlistId(), gameId).orElse(null);
+            WishlistGame wishlistGame = wishlistGameRepository.findByWishlistIdAndGameId(wishlist.getWishlistId(), gameId);
             if(wishlistGame != null){
                 wishlistGameRepository.delete(wishlistGame);
-                log.warn("이전 총 가격 = {}", wishlist.getTotalPrice());
                 wishlist.setTotalPrice(wishlist.getTotalPrice() - wishlistGame.getPrice());
-                log.warn("이후 총 가격 = {}", wishlist.getTotalPrice());
                 return true;
             }
         }

@@ -12,5 +12,5 @@ import java.util.List;
 public class WishlistResponseDto {
     private Long wishlistId;
     private int totalPrice;
-    private List<GameInfo> wishlist;
+    private List<GameDto> wishlist;
 }
