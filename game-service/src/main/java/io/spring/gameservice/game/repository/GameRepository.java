@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -15,6 +16,8 @@ public interface GameRepository extends JpaRepository<Game, Long> {
     Page<Game> findAllBySaledIsTrue(Pageable pageable);
 
     Optional<Game> findByGameIdAndSaledIsTrue(Long gameId);
+
+    List<Game> findAllByGameIdIn(List<Long> gameIdList);
 }
 
 

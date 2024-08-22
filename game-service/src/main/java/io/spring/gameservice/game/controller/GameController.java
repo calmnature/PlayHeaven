@@ -1,5 +1,6 @@
 package io.spring.gameservice.game.controller;
 
+import io.spring.gameservice.game.dto.GameDto;
 import io.spring.gameservice.game.service.GameService;
 import io.spring.gameservice.game.dto.GameRegistDto;
 import io.spring.gameservice.game.dto.GameResponseDetailDto;
@@ -36,5 +37,15 @@ public class GameController {
         return responseDto == null ?
                 ResponseEntity.status(HttpStatus.BAD_REQUEST).build() :
                 ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @GetMapping("/findById/{gameId}")
+    public GameDto findById(@PathVariable Long gameId) {
+        return gameService.findById(gameId);
+    }
+
+    @PostMapping("/subFind")
+    public List<GameDto> subFind(@RequestBody List<Long> gameIdList){
+        return gameService.subFind(gameIdList);
     }
 }

@@ -1,5 +1,6 @@
 package io.spring.gameservice.game.service;
 
+import io.spring.gameservice.game.dto.GameDto;
 import io.spring.gameservice.game.dto.GameRegistDto;
 import io.spring.gameservice.game.dto.GameResponseDetailDto;
 import io.spring.gameservice.game.dto.GameResponseDto;
@@ -47,5 +48,19 @@ public class GameService {
         if(game != null)
             return new GameResponseDetailDto(game);
         return null;
+    }
+
+    public GameDto findById(Long gameId) {
+        Game game = gameRepository.findById(gameId).orElse(null);
+        if(game == null) return null;
+
+        return GameDto.toDto(game);
+    }
+
+    public List<GameDto> subFind(List<Long> gameIdList) {
+        List<Game> gameList = gameRepository.findAllByGameIdIn(gameIdList);
+        return gameList.stream()
+                .map(GameDto::toDto)
+                .toList();
     }
 }
