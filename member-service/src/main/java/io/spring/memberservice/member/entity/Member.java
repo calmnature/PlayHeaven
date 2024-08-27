@@ -1,12 +1,13 @@
 package io.spring.memberservice.member.entity;
 
+import io.spring.memberservice.jwt.UserRole;
 import io.spring.memberservice.member.dto.MemberChangeDto;
-import io.spring.memberservice.member.dto.MemberRegistDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Getter
@@ -32,19 +33,11 @@ public class Member extends BaseTime {
     @Column(nullable = false)
     private String phone;
 
-    private Boolean deleted;
+    @ColumnDefault("0")
+    private UserRole role;
 
-    public static Member toEntity(MemberRegistDto memberRequestDto){
-        return new Member(
-                null,
-                memberRequestDto.getEmail(),
-                memberRequestDto.getPassword(),
-                memberRequestDto.getName(),
-                memberRequestDto.getNickname(),
-                memberRequestDto.getPhone(),
-                false
-        );
-    }
+    @ColumnDefault("false")
+    private Boolean deleted;
 
     public void patch(MemberChangeDto updateDto) {
         if(updateDto.getUpdatePassword() != null)
