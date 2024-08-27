@@ -1,14 +1,11 @@
 package io.spring.memberservice.member.controller;
 
-import io.spring.memberservice.member.service.MemberService;
 import io.spring.memberservice.member.dto.LoginDto;
 import io.spring.memberservice.member.dto.MemberChangeDto;
 import io.spring.memberservice.member.dto.MemberRegistDto;
-import io.spring.memberservice.member.dto.MemberResponseDto;
 import io.spring.memberservice.member.service.MemberService;
 import jakarta.mail.MessagingException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -58,21 +55,17 @@ public class MemberController {
 
     @PostMapping("/regist")
     public ResponseEntity<String> regist(@RequestBody MemberRegistDto memberRequestDto){
-        memberService.regist(memberRequestDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body("회원 가입에 성공하였습니다.");
+        boolean success = memberService.regist(memberRequestDto);
+        return success ? ResponseEntity.status(HttpStatus.CREATED).body("회원 가입에 성공하였습니다.") :
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body("회원 가입에 실패하였습니다.");
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginDto loginDto, HttpServletRequest request) {
-        MemberResponseDto responseDto = memberService.login(loginDto);
+    public ResponseEntity<String> login(@RequestBody LoginDto loginDto, HttpServletResponse res) {
+        boolean success = memberService.login(loginDto, res);
 
-        if(responseDto == null){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인에 실패하였습니다.");
-        }
-
-        HttpSession session = request.getSession();
-        session.setAttribute("member", responseDto);
-        return ResponseEntity.status(HttpStatus.OK).body("로그인에 성공하였습니다.");
+        return success ? ResponseEntity.status(HttpStatus.OK).body("로그인에 성공하였습니다.") :
+                ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인에 실패하였습니다.");
     }
 
     @PatchMapping("/update")
