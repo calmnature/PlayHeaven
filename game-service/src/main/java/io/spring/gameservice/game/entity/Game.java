@@ -1,6 +1,5 @@
 package io.spring.gameservice.game.entity;
 
-import io.spring.gameservice.game.dto.GameRegistDto;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -22,16 +21,4 @@ public class Game extends BaseTime{
     private String detail;
     private boolean saled;
     private Long memberId;
-
-    public static Game toEntity(GameRegistDto gameRegistDto){
-        return new Game(
-                null,
-                gameRegistDto.getGameName(),
-                gameRegistDto.getPrice(),
-                0,
-                gameRegistDto.getDetail(),
-                true,
-                gameRegistDto.getMemberId()
-        );
-    }
 }
