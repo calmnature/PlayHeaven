@@ -1,4 +1,4 @@
-package io.spring.memberservice.member.service;
+package io.spring.memberservice.redis.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;

@@ -1,4 +1,4 @@
-package io.spring.memberservice.member.service;
+package io.spring.memberservice.mail.service;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
