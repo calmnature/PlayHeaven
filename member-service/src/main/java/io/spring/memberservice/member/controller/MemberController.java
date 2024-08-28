@@ -5,6 +5,7 @@ import io.spring.memberservice.member.dto.MemberChangeDto;
 import io.spring.memberservice.member.dto.MemberRegistDto;
 import io.spring.memberservice.member.service.MemberService;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -66,6 +67,13 @@ public class MemberController {
 
         return success ? ResponseEntity.status(HttpStatus.OK).body("로그인에 성공하였습니다.") :
                 ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인에 실패하였습니다.");
+    }
+
+    @GetMapping("/logout")
+    public ResponseEntity<String> logout(HttpServletRequest req){
+        boolean success = memberService.logout(req);
+        return success ? ResponseEntity.status(HttpStatus.OK).body("로그아웃 되었습니다.") :
+                ResponseEntity.status(HttpStatus.OK).body("로그아웃에 실패하였습니다.");
     }
 
     @PatchMapping("/update")

@@ -8,6 +8,7 @@ import io.spring.memberservice.member.dto.MemberRegistDto;
 import io.spring.memberservice.member.entity.Member;
 import io.spring.memberservice.member.repository.MemberRepository;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -59,12 +60,25 @@ public class MemberService {
 
     public boolean login(LoginDto loginDto, HttpServletResponse res) {
         Member member = memberRepository.findByEmail(loginDto.getEmail());
-        if(member == null || passwordEncoder.matches(member.getPassword(), loginDto.getPassword()))
+        if(member == null || !passwordEncoder.matches(loginDto.getPassword(), member.getPassword()))
             return false;
 
-        String token = jwtUtil.createToken(member);
-        jwtUtil.addJwtToHeader(token, res);
+        // Access Token 생성하여 Response Header에 추가
+        String accessToken = jwtUtil.createAccessToken(member);
+        jwtUtil.addJwtToHeader(accessToken, res);
+
+        // Refresh Token 생성하여 redis에 저장
+        String refreshToken = jwtUtil.createRefreshToken(member);
+        redisService.saveRefreshToken(member.getEmail(), refreshToken);
         return true;
+    }
+
+    public boolean logout(HttpServletRequest req) {
+        String header = req.getHeader("Authorization");
+        String token = jwtUtil.substringToken(header);
+
+        String subject = jwtUtil.getTokenBody(token);
+        return redisService.deleteRefreshToken(subject);
     }
 
     public boolean sendAuthcode(String email) throws MessagingException {
@@ -101,4 +115,6 @@ public class MemberService {
 
         return false;
     }
+
+
 }

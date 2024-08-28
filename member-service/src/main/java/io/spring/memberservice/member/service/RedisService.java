@@ -1,6 +1,7 @@
 package io.spring.memberservice.member.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,9 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class RedisService {
     private final RedisTemplate<String, String> redisTemplate;
+
+    @Value("${jwt.token.refresh-expiration}")
+    private long refreshTokenTime;
 
     // K : 이메일, V : 인증 코드
     public void setCode(String email, String authCode){
@@ -27,5 +31,18 @@ public class RedisService {
         if(authCode == null)
             throw new AuthenticationException("인증 코드가 일치하지 않습니다.");
         return authCode;
+    }
+
+    public void saveRefreshToken(String subject, String refreshToken) {
+        redisTemplate.opsForValue().set(
+                        subject,
+                        refreshToken,
+                        refreshTokenTime,
+                        TimeUnit.MILLISECONDS
+        );
+    }
+
+    public Boolean deleteRefreshToken(String subject) {
+        return redisTemplate.delete(subject);
     }
 }
