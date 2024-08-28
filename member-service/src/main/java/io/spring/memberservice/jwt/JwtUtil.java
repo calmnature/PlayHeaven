@@ -1,5 +1,6 @@
 package io.spring.memberservice.jwt;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -79,7 +80,7 @@ public class JwtUtil {
         throw new NullPointerException("Not Found Token");
     }
 
-    public String getTokenBody(String token){
-        return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().getSubject();
+    public Claims getTokenBody(String token){
+        return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
     }
 }

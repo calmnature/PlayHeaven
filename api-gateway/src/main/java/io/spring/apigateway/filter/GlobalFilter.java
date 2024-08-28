@@ -44,9 +44,11 @@ public class GlobalFilter extends AbstractGatewayFilterFactory<GlobalFilter.Conf
             HttpHeaders headers = request.getHeaders();
             String authorization = headers.getFirst("Authorization");
             List<String> whiteList = Arrays.asList(
-              "/member-service/api/member/email/auth/**",
-              "/member-service/api/member/regist",
-              "/member-service/api/member/login"
+              "/member-service/v1/email-overlap/**",
+              "/member-service/v1/email-auth/**",
+              "/member-service/v1/nickname-overlap/**",
+              "/member-service/v1/regist",
+              "/member-service/v1/login"
             );
 
             String path = request.getURI().getPath();

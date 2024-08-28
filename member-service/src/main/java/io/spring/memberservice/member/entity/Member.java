@@ -1,7 +1,7 @@
 package io.spring.memberservice.member.entity;
 
 import io.spring.memberservice.jwt.UserRole;
-import io.spring.memberservice.member.dto.MemberChangeDto;
+import io.spring.memberservice.member.dto.AlterRequestDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -39,11 +39,11 @@ public class Member extends BaseTime {
     @ColumnDefault("false")
     private Boolean deleted;
 
-    public void patch(MemberChangeDto updateDto) {
-        if(updateDto.getUpdatePassword() != null)
-            this.password = updateDto.getUpdatePassword();
-        if(updateDto.getNickname() != null)
-            this.nickname = updateDto.getNickname();
+    public void patch(AlterRequestDto alterRequestDto) {
+        if(alterRequestDto.getUpdatePassword() != null)
+            this.password = alterRequestDto.getUpdatePassword();
+        if(alterRequestDto.getNickname() != null)
+            this.nickname = alterRequestDto.getNickname();
     }
 
     public void changeDeleted() {
