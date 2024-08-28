@@ -1,10 +1,8 @@
 package io.spring.apigateway.filter;
 
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.SignatureException;
-import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.*;
 import io.spring.apigateway.jwt.JwtUtil;
+import io.spring.apigateway.service.RedisService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
@@ -28,13 +26,15 @@ import java.util.List;
 @Slf4j(topic = "API Gateway-GlobalFilter")
 public class GlobalFilter extends AbstractGatewayFilterFactory<GlobalFilter.Config> {
     private final JwtUtil jwtUtil;
+    private final RedisService redisService;
     private final AntPathMatcher antPathMatcher = new AntPathMatcher();
 
     public static class Config{}
 
-    public GlobalFilter(JwtUtil jwtUtil){
+    public GlobalFilter(JwtUtil jwtUtil, RedisService redisService){
         super(Config.class);
         this.jwtUtil = jwtUtil;
+        this.redisService = redisService;
     }
 
     @Override
@@ -56,7 +56,7 @@ public class GlobalFilter extends AbstractGatewayFilterFactory<GlobalFilter.Conf
                     .anyMatch(pattern -> antPathMatcher.match(pattern, path));
 
             if(isPathAllowed){
-                log.info("Routing login or regist");
+                log.info("Routing Whitelist");
                 return chain.filter(exchange);
             }
 
@@ -70,17 +70,30 @@ public class GlobalFilter extends AbstractGatewayFilterFactory<GlobalFilter.Conf
 
             try {
                 jwtUtil.validateToken(token);
+                return chain.filter(exchange);
             } catch (SecurityException | MalformedJwtException | SignatureException e) {
                 return onError(exchange, "유효하지 않는 JWT 서명 입니다.", HttpStatus.UNAUTHORIZED);
             } catch (ExpiredJwtException e) {
-                return onError(exchange, "만료된 JWT 토큰 입니다.", HttpStatus.UNAUTHORIZED);
+                log.info("Access Token 만료");
+                Claims claims = e.getClaims();
+
+                log.info("Redis에 저장된 RefreshToken 추출");
+                String refreshToken = redisService.getRefreshToken(claims.getSubject());
+
+                if(refreshToken != null && jwtUtil.validateToken(refreshToken)){
+                    log.info("유효한 Refresh Token으로 Access Token 재발급");
+                    String newAccessToken = jwtUtil.createAccessToken(claims);
+                    jwtUtil.addJwtToHeader(newAccessToken, exchange.getResponse());
+                    return chain.filter(exchange);
+                } else{
+                    log.info("유효하지 않은 Refresh Token(기간 만료 or Refresh Token 존재하지 않음)");
+                    return onError(exchange, "로그인 후 이용 가능합니다.", HttpStatus.UNAUTHORIZED);
+                }
             } catch (UnsupportedJwtException e) {
                 return onError(exchange, "지원되지 않는 JWT 토큰 입니다.", HttpStatus.UNAUTHORIZED);
             } catch (IllegalArgumentException e) {
                 return onError(exchange, "잘못된 JWT 토큰 입니다.", HttpStatus.UNAUTHORIZED);
             }
-
-            return chain.filter(exchange);
         });
     }
 
