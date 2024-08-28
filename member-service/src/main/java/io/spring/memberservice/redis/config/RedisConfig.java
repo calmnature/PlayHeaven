@@ -1,4 +1,4 @@
-package io.spring.memberservice.member.config;
+package io.spring.memberservice.redis.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
