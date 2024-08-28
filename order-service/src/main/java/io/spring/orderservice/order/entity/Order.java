@@ -1,7 +1,6 @@
 package io.spring.orderservice.order.entity;
 
 import io.spring.orderservice.order.constant.OrderStatus;
-import io.spring.orderservice.order.dto.OrderRequestDto;
 import jakarta.persistence.*;
 import lombok.*;
 

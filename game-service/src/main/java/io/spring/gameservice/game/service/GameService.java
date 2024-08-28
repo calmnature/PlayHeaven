@@ -1,5 +1,6 @@
 package io.spring.gameservice.game.service;
 
+import io.jsonwebtoken.Claims;
 import io.spring.gameservice.game.dto.GameDto;
 import io.spring.gameservice.game.dto.GameRegistDto;
 import io.spring.gameservice.game.dto.GameResponseDetailDto;
@@ -28,9 +29,6 @@ public class GameService {
 
     public boolean regist(GameRegistDto gameRegistDto, HttpServletRequest req) {
         Game existed = gameRepository.findByGameName(gameRegistDto.getGameName());
-        String header = req.getHeader("Authorization");
-        String token = jwtUtil.substringToken(header);
-        Long memberId = Long.parseLong(jwtUtil.getTokenBody(token).get("memberId").toString());
 
         if(existed != null)
             return false;
@@ -40,7 +38,7 @@ public class GameService {
                         .gameName(gameRegistDto.getGameName())
                         .price(gameRegistDto.getPrice())
                         .detail(gameRegistDto.getDetail())
-                        .memberId(memberId)
+                        .memberId(getMemberId(req))
                         .saled(true)
                         .build()
         );
@@ -84,5 +82,12 @@ public class GameService {
         return gameList.stream()
                 .map(GameDto::toDto)
                 .toList();
+    }
+
+    private Long getMemberId(HttpServletRequest req){
+        String header = req.getHeader("Authorization");
+        String token = jwtUtil.substringToken(header);
+        Claims claims = jwtUtil.getTokenBody(token);
+        return Long.parseLong(claims.get("memberId").toString());
     }
 }
