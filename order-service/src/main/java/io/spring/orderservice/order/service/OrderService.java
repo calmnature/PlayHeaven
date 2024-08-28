@@ -1,14 +1,17 @@
 package io.spring.orderservice.order.service;
 
+import io.jsonwebtoken.Claims;
 import io.spring.orderservice.common.dto.GameDto;
-import io.spring.orderservice.common.feign.GameApi;
+import io.spring.orderservice.common.feign.api.GameApi;
+import io.spring.orderservice.common.jwt.JwtUtil;
 import io.spring.orderservice.order.constant.OrderStatus;
-import io.spring.orderservice.order.dto.OrderRequestDto;
+import io.spring.orderservice.order.dto.GameIdListDto;
 import io.spring.orderservice.order.dto.OrderResponseDto;
 import io.spring.orderservice.order.entity.Order;
 import io.spring.orderservice.order.entity.OrderGame;
 import io.spring.orderservice.order.repository.OrderGameRepository;
 import io.spring.orderservice.order.repository.OrderRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -29,13 +32,16 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderGameRepository orderGameRepository;
     private final GameApi gameApi;
+    private final JwtUtil jwtUtil;
 
-    public boolean purchase(OrderRequestDto orderRequestDto) {
-        List<GameDto> gameDtoList = gameApi.subFind(orderRequestDto.getGameIdList());
+    public boolean requestOrder(GameIdListDto gameIdList, HttpServletRequest req) {
+        List<GameDto> gameDtoList = gameApi.subFind(gameIdList.getGameIdList());
+
         int totalPrice = gameDtoList.stream()
                 .mapToInt(GameDto::getPrice)
                 .sum();
-        Order order = orderRepository.save(Order.toEntity(totalPrice, orderRequestDto.getMemberId()));
+
+        Order order = orderRepository.save(Order.toEntity(totalPrice, getMemberId(req)));
 
         List<OrderGame> orderGameList = gameDtoList.stream()
                 .map(gameDto -> OrderGame.builder()
@@ -45,16 +51,18 @@ public class OrderService {
                         .build()
                 )
                 .collect(Collectors.toList());
+
         orderGameRepository.saveAll(orderGameList);
+
         return true;
     }
 
-    public List<OrderResponseDto> allList(Long memberId, int pageNo, int size) {
+    public List<OrderResponseDto> list(int pageNo, int size, HttpServletRequest req) {
         // 주문번호 내림차순으로 Pagination
         Pageable pageable = PageRequest.of(pageNo, size, Sort.by(Sort.Direction.DESC, "orderId"));
 
         // memberId를 기준으로 주문 테이블 검색
-        Page<Order> page = orderRepository.findAllByMemberId(memberId, pageable);
+        Page<Order> page = orderRepository.findAllByMemberId(getMemberId(req), pageable);
         List<Order> orderList = page.getContent();
 
         // 주문에 해당하는 OrderGame 엔티티 조회
@@ -71,6 +79,16 @@ public class OrderService {
         return orderList.stream()
                 .map(order -> convertToDto(order, orderGameList, gameDtoList))
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public boolean refund(Long orderId, HttpServletRequest req) {
+        Order order = orderRepository.findById(orderId).orElse(null);
+        if(order != null && order.getMemberId().equals(getMemberId(req)) && Duration.between(order.getCreateAt(), LocalDateTime.now()).toHours() < 24 ){
+            order.setOrderStatus(OrderStatus.REFUND);
+            return true;
+        }
+        return false;
     }
 
     private OrderResponseDto convertToDto(Order order, List<OrderGame> orderGameList, List<GameDto> gameDtoList) {
@@ -91,18 +109,6 @@ public class OrderService {
                 .build();
     }
 
-    @Transactional
-    public boolean refund(Long memberId, Long orderId) {
-        Order order = orderRepository.findById(orderId).orElse(null);
-        if(order != null && order.getMemberId().equals(memberId)){
-            if(Duration.between(order.getCreateAt(), LocalDateTime.now()).toHours() <= 24 && order.getOrderStatus().equals(OrderStatus.PURCHASE)){
-                order.setOrderStatus(OrderStatus.REFUND);
-                return true;
-            }
-        }
-        return false;
-    }
-
     @Scheduled(cron = "0 0/5 * * * *")
     @Transactional
     protected void updateOrderStatus(){
@@ -110,5 +116,12 @@ public class OrderService {
         allList.stream()
                 .filter(order -> Duration.between(order.getCreateAt(), LocalDateTime.now()).toHours() >= 24)
                 .forEach(order -> order.setOrderStatus(OrderStatus.CONFIRM));
+    }
+
+    private Long getMemberId(HttpServletRequest req){
+        String header = req.getHeader("Authorization");
+        String token = jwtUtil.substringToken(header);
+        Claims claims = jwtUtil.getTokenBody(token);
+        return Long.parseLong(claims.get("memberId").toString());
     }
 }
