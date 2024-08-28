@@ -46,7 +46,7 @@ public class JwtUtil {
                         .claim(AUTHORIZATION_KEY, member.getRole()) // 사용자 권한
                         .claim("memberId", member.getMemberId()) // Member PK
                         .claim("name", member.getName()) // 사용자 이름
-                        .claim("nickName", member.getNickname()) // 사용자 닉네임
+                        .claim("nickname", member.getNickname()) // 사용자 닉네임
                         .setExpiration(new Date(date.getTime() + ACCESS_TOKEN_TIME)) // 만료 시간
                         .setIssuedAt(date) // 발급일
                         .signWith(key, signatureAlgorithm) // 암호화 알고리즘
