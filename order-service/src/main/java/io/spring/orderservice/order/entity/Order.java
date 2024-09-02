@@ -32,7 +32,7 @@ public class Order extends BaseTime {
                 null,
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")),
                 totalPrice,
-                OrderStatus.PURCHASE,
+                OrderStatus.PENDING,
                 memberId
         );
     }

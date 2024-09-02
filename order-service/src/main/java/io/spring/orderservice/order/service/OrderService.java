@@ -3,14 +3,18 @@ package io.spring.orderservice.order.service;
 import io.jsonwebtoken.Claims;
 import io.spring.orderservice.common.dto.GameDto;
 import io.spring.orderservice.common.feign.api.GameApi;
+import io.spring.orderservice.common.feign.api.PaymentApi;
 import io.spring.orderservice.common.jwt.JwtUtil;
 import io.spring.orderservice.order.constant.OrderStatus;
 import io.spring.orderservice.order.dto.GameIdListDto;
 import io.spring.orderservice.order.dto.OrderResponseDto;
+import io.spring.orderservice.payment.constant.PaymentWay;
+import io.spring.orderservice.payment.dto.PaymentRequestDto;
 import io.spring.orderservice.order.entity.Order;
 import io.spring.orderservice.order.entity.OrderGame;
 import io.spring.orderservice.order.repository.OrderGameRepository;
 import io.spring.orderservice.order.repository.OrderRepository;
+import io.spring.orderservice.payment.dto.PaymentResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -32,8 +36,10 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderGameRepository orderGameRepository;
     private final GameApi gameApi;
+    private final PaymentApi paymentApi;
     private final JwtUtil jwtUtil;
 
+    @Transactional
     public boolean requestOrder(GameIdListDto gameIdList, HttpServletRequest req) {
         List<GameDto> gameDtoList = gameApi.subFind(gameIdList.getGameIdList());
 
@@ -54,7 +60,20 @@ public class OrderService {
 
         orderGameRepository.saveAll(orderGameList);
 
-        return true;
+        PaymentRequestDto paymentRequestDto = PaymentRequestDto.builder()
+                .totalPrice(order.getTotalPrice())
+                .paymentWay(PaymentWay.CARD_PAYMENT)
+                .orderId(order.getOrderId())
+                .build();
+        PaymentResponseDto paymentResponseDto = paymentApi.payment(paymentRequestDto);
+
+        if(paymentResponseDto.isSuccess()){
+            order.setOrderStatus(OrderStatus.PURCHASE);
+            return true;
+        } else {
+            order.setOrderStatus(OrderStatus.CANCEL);
+            return false;
+        }
     }
 
     public List<OrderResponseDto> list(int pageNo, int size, HttpServletRequest req) {
