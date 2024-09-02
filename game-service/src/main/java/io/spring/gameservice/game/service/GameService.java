@@ -95,6 +95,18 @@ public class GameService {
                 .toList();
     }
 
+    @Transactional
+    public void stockIncrease(List<Long> gameIdList) {
+        List<Game> gameList = gameRepository.findAllByGameIdIn(gameIdList);
+        gameList.forEach(Game::increasement);
+    }
+
+    @Transactional
+    public void stockDecrease(List<Long> gameIdList) {
+        List<Game> gameList = gameRepository.findAllByGameIdIn(gameIdList);
+        gameList.forEach(Game::decreasement);
+    }
+
     private Long getMemberId(HttpServletRequest req){
         String header = req.getHeader("Authorization");
         String token = jwtUtil.substringToken(header);

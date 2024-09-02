@@ -55,4 +55,14 @@ public class GameController {
     public List<GameDto> subFind(@RequestBody List<Long> gameIdList){
         return gameService.subFind(gameIdList);
     }
+
+    @PostMapping("/stock/increase")
+    public void stockIncrease(@RequestBody List<Long> gameIdList){
+        gameService.stockIncrease(gameIdList);
+    }
+
+    @PostMapping("/stock/decrease")
+    public void stockDecrease(@RequestBody List<Long> gameIdList){
+        gameService.stockDecrease(gameIdList);
+    }
 }
