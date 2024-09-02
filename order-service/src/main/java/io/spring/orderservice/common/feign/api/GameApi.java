@@ -19,4 +19,10 @@ public interface GameApi {
 
     @GetMapping("/findById/{gameId}")
     GameDto findById(@PathVariable Long gameId);
+
+    @PostMapping("/stock/decrease")
+    void stockDecrease(List<Long> gameIdList);
+
+    @PostMapping("/stock/increase")
+    void stockIncrease(List<Long> gameIdList);
 }

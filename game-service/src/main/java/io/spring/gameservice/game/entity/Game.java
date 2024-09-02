@@ -25,4 +25,12 @@ public class Game extends BaseTime{
     public void addEventStock(int addStock){
         this.eventStock += addStock;
     }
+
+    public void increasement(){
+        this.eventStock++;
+    }
+
+    public void decreasement(){
+        this.eventStock--;
+    }
 }

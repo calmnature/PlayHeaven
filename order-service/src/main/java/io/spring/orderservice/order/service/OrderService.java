@@ -44,6 +44,11 @@ public class OrderService {
         List<GameDto> gameDtoList = gameApi.subFind(gameIdList.getGameIdList());
 
         int totalPrice = gameDtoList.stream()
+                .peek(gameDto -> {
+                    if (gameDto.getEventStock() > 0) {
+                        gameDto.setPrice((int) (gameDto.getPrice() * 0.8));
+                    }
+                })
                 .mapToInt(GameDto::getPrice)
                 .sum();
 
@@ -60,6 +65,12 @@ public class OrderService {
 
         orderGameRepository.saveAll(orderGameList);
 
+        List<Long> eventGameList = gameDtoList.stream()
+                        .filter(gameDto -> gameDto.getEventStock() > 0)
+                        .map(GameDto::getGameId)
+                        .toList();
+        gameApi.stockDecrease(eventGameList);
+
         PaymentRequestDto paymentRequestDto = PaymentRequestDto.builder()
                 .totalPrice(order.getTotalPrice())
                 .paymentWay(PaymentWay.CARD_PAYMENT)
@@ -72,6 +83,7 @@ public class OrderService {
             return true;
         } else {
             order.setOrderStatus(OrderStatus.CANCEL);
+            gameApi.stockIncrease(eventGameList);
             return false;
         }
     }
