@@ -1,10 +1,7 @@
 package io.spring.gameservice.game.service;
 
-import io.jsonwebtoken.Claims;
-import io.spring.gameservice.game.dto.GameDto;
-import io.spring.gameservice.game.dto.GameRegistDto;
-import io.spring.gameservice.game.dto.GameResponseDetailDto;
-import io.spring.gameservice.game.dto.GameResponseDto;
+
+import io.spring.gameservice.game.dto.*;
 import io.spring.gameservice.game.entity.Game;
 import io.spring.gameservice.game.repository.GameRepository;
 import io.spring.gameservice.jwt.JwtUtil;
@@ -16,6 +13,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -43,6 +41,19 @@ public class GameService {
                         .build()
         );
         return true;
+    }
+
+    @Transactional
+    public boolean addEventStock(GameEventStockAddRequestDto gameEventStockRequestDto, HttpServletRequest req) {
+        Optional<Game> optionalGame = gameRepository.findById(gameEventStockRequestDto.getGameId());
+        if(optionalGame.isPresent()){
+            Game game  = optionalGame.get();
+            if(game.getMemberId().equals(getMemberId(req))){
+                game.addEventStock(gameEventStockRequestDto.getEventStock());
+                return true;
+            }
+        }
+        return false;
     }
 
     public List<GameResponseDto> list(int pageNo, int size) {
@@ -87,7 +98,6 @@ public class GameService {
     private Long getMemberId(HttpServletRequest req){
         String header = req.getHeader("Authorization");
         String token = jwtUtil.substringToken(header);
-        Claims claims = jwtUtil.getTokenBody(token);
-        return Long.parseLong(claims.get("memberId").toString());
+        return Long.parseLong(jwtUtil.getTokenBody(token).get("memberId").toString());
     }
 }
