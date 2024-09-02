@@ -21,4 +21,8 @@ public class Game extends BaseTime{
     private String detail;
     private boolean saled;
     private Long memberId;
+
+    public void addEventStock(int addStock){
+        this.eventStock += addStock;
+    }
 }

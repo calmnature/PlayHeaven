@@ -1,10 +1,7 @@
 package io.spring.gameservice.game.controller;
 
-import io.spring.gameservice.game.dto.GameDto;
+import io.spring.gameservice.game.dto.*;
 import io.spring.gameservice.game.service.GameService;
-import io.spring.gameservice.game.dto.GameRegistDto;
-import io.spring.gameservice.game.dto.GameResponseDetailDto;
-import io.spring.gameservice.game.dto.GameResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -24,6 +21,13 @@ public class GameController {
         boolean success = gameService.regist(gameRegistDto, req);
         return success ? ResponseEntity.status(HttpStatus.CREATED).body("판매 게임 등록에 성공하였습니다.") :
                 ResponseEntity.status(HttpStatus.BAD_REQUEST).body("판매 게임 등록에 실패하였습니다.");
+    }
+
+    @PostMapping("/add/eventStock")
+    public ResponseEntity<String> addEventStock(@RequestBody GameEventStockAddRequestDto gameEventStockRequestDto, HttpServletRequest req){
+        boolean success = gameService.addEventStock(gameEventStockRequestDto, req);
+        return success ? ResponseEntity.status(HttpStatus.CREATED).body("선착순 구매 재고 추가에 성공하였습니다.") :
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body("선착순 구매 재고 추가에 실패하였습니다.");
     }
 
     @GetMapping("/list")
