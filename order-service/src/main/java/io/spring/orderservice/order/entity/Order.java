@@ -1,7 +1,6 @@
 package io.spring.orderservice.order.entity;
 
 import io.spring.orderservice.order.constant.OrderStatus;
-import io.spring.orderservice.order.dto.OrderRequestDto;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -33,7 +32,7 @@ public class Order extends BaseTime {
                 null,
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")),
                 totalPrice,
-                OrderStatus.PURCHASE,
+                OrderStatus.PENDING,
                 memberId
         );
     }
