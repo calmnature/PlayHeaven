@@ -59,9 +59,9 @@ Play Heaven은 <b>Spring 기반의 E-Commerce 디지털 게임 유통 플랫폼<
 <span id="5"></span>
 ## 📽️5. 프로젝트 아키텍쳐
 ### ERD
-
+<img src="https://github.com/calmnature/PlayHeaven/blob/develop/github_img/ERD.png" alt="ERD 이미지"><br>
 ### Micro Service Architecture
-
+<img src="https://github.com/calmnature/PlayHeaven/blob/develop/github_img/MSA.png" alt="Architecture"><br>
 <br><br>
 [목차](#table)
 <br><br><br><br>
@@ -160,3 +160,6 @@ Play Heaven은 <b>Spring 기반의 E-Commerce 디지털 게임 유통 플랫폼<
   - Redis 캐싱을 이용한 JMeter 성능 측정
 - 분산 락
 - 주문 → 결제 시 동기 → 비동기 통신
+
+<br><br>
+[목차](#table)
