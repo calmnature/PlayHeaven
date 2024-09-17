@@ -15,12 +15,14 @@ import io.spring.orderservice.order.entity.OrderGame;
 import io.spring.orderservice.order.repository.OrderGameRepository;
 import io.spring.orderservice.order.repository.OrderRepository;
 import io.spring.orderservice.payment.dto.PaymentResponseDto;
+import io.spring.orderservice.redis.service.RedisService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,14 +40,23 @@ public class OrderService {
     private final GameApi gameApi;
     private final PaymentApi paymentApi;
     private final JwtUtil jwtUtil;
+    private final RedisService redisService;
 
     @Transactional
     public boolean requestOrder(GameIdListDto gameIdList, HttpServletRequest req) {
         List<GameDto> gameDtoList = gameApi.subFind(gameIdList.getGameIdList());
 
+        gameDtoList
+                .forEach(gameDto -> {
+                    String key = "eventStock" + gameDto.getGameId();
+                    if(redisService.getEventStock(key) == null){
+                        redisService.setEventStock(key, gameDto.getEventStock());
+                    }
+                });
+
         int totalPrice = gameDtoList.stream()
                 .peek(gameDto -> {
-                    if (gameDto.getEventStock() > 0) {
+                    if (redisService.getEventStock("eventStock" + gameDto.getGameId()) > 0) {
                         gameDto.setPrice((int) (gameDto.getPrice() * 0.8));
                     }
                 })
@@ -66,10 +77,12 @@ public class OrderService {
         orderGameRepository.saveAll(orderGameList);
 
         List<Long> eventGameList = gameDtoList.stream()
-                        .filter(gameDto -> gameDto.getEventStock() > 0)
                         .map(GameDto::getGameId)
+                        .filter(gameId -> redisService.getEventStock("eventStock" + gameId) > 0)
                         .toList();
-        gameApi.stockDecrease(eventGameList);
+
+        eventGameList.forEach(gameId -> redisService.stockDecrease("eventStock" + gameId));
+        stockDecrease(eventGameList);
 
         PaymentRequestDto paymentRequestDto = PaymentRequestDto.builder()
                 .totalPrice(order.getTotalPrice())
@@ -83,7 +96,8 @@ public class OrderService {
             return true;
         } else {
             order.setOrderStatus(OrderStatus.CANCEL);
-            gameApi.stockIncrease(eventGameList);
+            eventGameList.forEach(gameId -> redisService.stockIncrease("eventStock" + gameId));
+            stockIncrease(eventGameList);
             return false;
         }
     }
@@ -120,6 +134,16 @@ public class OrderService {
             return true;
         }
         return false;
+    }
+
+    @Async
+    protected void stockDecrease(List<Long> evnetGameList){
+        gameApi.stockDecrease(evnetGameList);
+    }
+
+    @Async
+    protected void stockIncrease(List<Long> evnetGameList){
+        gameApi.stockIncrease(evnetGameList);
     }
 
     private OrderResponseDto convertToDto(Order order, List<OrderGame> orderGameList, List<GameDto> gameDtoList) {
