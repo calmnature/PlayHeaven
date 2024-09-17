@@ -30,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,17 +47,10 @@ public class OrderService {
     public boolean requestOrder(GameIdListDto gameIdList, HttpServletRequest req) {
         List<GameDto> gameDtoList = gameApi.subFind(gameIdList.getGameIdList());
 
-        gameDtoList.forEach(gameDto -> {
-                    String key = "eventStock" + gameDto.getGameId();
-                    Integer eventStock = redisService.getEventStock(key);
-                    if(eventStock == null && gameDto.getEventStock() > 0){
-                        redisService.setEventStock(key, gameDto.getEventStock());
-                    }
-                });
-
+        Map<String, Integer> eventStockMap = redisService.getMultiEventStock(gameDtoList);
         int totalPrice = gameDtoList.stream()
                 .peek(gameDto -> {
-                    Integer eventStock = redisService.getEventStock("eventStock" + gameDto.getGameId());
+                    Integer eventStock = eventStockMap.get("eventStock" + gameDto.getGameId());
                     if (eventStock != null && eventStock > 0) {
                         gameDto.setPrice((int) (gameDto.getPrice() * 0.8));
                     }
@@ -78,14 +72,13 @@ public class OrderService {
         orderGameRepository.saveAll(orderGameList);
 
         List<Long> eventGameList = gameDtoList.stream()
-                .map(GameDto::getGameId)
-                .filter(gameId -> {
-                    Integer eventStock = redisService.getEventStock("eventStock" + gameId);
+                .filter(gameDto -> {
+                    Integer eventStock = eventStockMap.get("eventStock" + gameDto.getGameId());
                     return eventStock != null && eventStock > 0;
                 })
+                .map(GameDto::getGameId)
                 .toList();
-
-        eventGameList.forEach(gameId -> redisService.stockDecrease("eventStock" + gameId));
+        redisService.bulkStockDecrease(eventGameList);
         stockDecrease(eventGameList);
 
         PaymentRequestDto paymentRequestDto = PaymentRequestDto.builder()
@@ -100,7 +93,7 @@ public class OrderService {
             return true;
         } else {
             order.setOrderStatus(OrderStatus.CANCEL);
-            eventGameList.forEach(gameId -> redisService.stockIncrease("eventStock" + gameId));
+            redisService.bulkStockIncrease(eventGameList);
             stockIncrease(eventGameList);
             return false;
         }

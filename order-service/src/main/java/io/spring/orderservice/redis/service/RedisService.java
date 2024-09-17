@@ -1,11 +1,15 @@
 package io.spring.orderservice.redis.service;
 
+import io.spring.orderservice.common.dto.GameDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -24,18 +28,48 @@ public class RedisService {
                 TimeUnit.MILLISECONDS
         );
     }
-    public Integer getEventStock(String key){
-        ValueOperations<String, Integer> valueOperations = redisTemplate.opsForValue();
-        return valueOperations.get(key);
+
+    public Map<String, Integer> getMultiEventStock(List<GameDto> gameDtoList) {
+        List<String> keys = gameDtoList.stream()
+                .map(gameDto -> "eventStock" + gameDto.getGameId())
+                .toList();
+
+        List<Integer> values = redisTemplate.opsForValue().multiGet(keys);
+
+        Map<String, Integer> eventStockMap = new HashMap<>();
+        int size = keys.size();
+        for(int i = 0; i < size; i++){
+            String key = keys.get(i);
+            Integer value = values.get(i);
+            if(value == null){
+                int eventStock = gameDtoList.get(i).getEventStock();
+                if(eventStock == 0) continue;
+                setEventStock(key, eventStock);
+                value = eventStock;
+            }
+            eventStockMap.put(key, value);
+        }
+
+        return eventStockMap;
     }
 
-    public void stockDecrease(String key) {
-        Integer eventStock = getEventStock(key);
-        if(eventStock != null && eventStock > 0)
-            redisTemplate.opsForValue().decrement(key, 1);
+    public void bulkStockDecrease(List<Long> eventGameList) {
+        redisTemplate.executePipelined((RedisCallback<Object>) connection -> {
+            for(Long gameId : eventGameList){
+                String key = "eventStock" + gameId;
+                connection.stringCommands().decr(key.getBytes());
+            }
+            return null;
+        });
     }
 
-    public void stockIncrease(String key) {
-        redisTemplate.opsForValue().increment(key, 1);
+    public void bulkStockIncrease(List<Long> eventGameList) {
+        redisTemplate.executePipelined((RedisCallback<Object>) connection -> {
+            for(Long gameId : eventGameList){
+                String key = "eventStock" + gameId;
+                connection.stringCommands().incr(key.getBytes());
+            }
+            return null;
+        });
     }
 }
