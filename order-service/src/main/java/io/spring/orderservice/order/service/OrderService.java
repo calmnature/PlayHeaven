@@ -43,7 +43,6 @@ public class OrderService {
     private final JwtUtil jwtUtil;
     private final RedisService redisService;
 
-    @Transactional
     public boolean requestOrder(GameIdListDto gameIdList, HttpServletRequest req) {
         List<GameDto> gameDtoList = gameApi.subFind(gameIdList.getGameIdList());
 
@@ -90,9 +89,11 @@ public class OrderService {
 
         if(paymentResponseDto.isSuccess()){
             order.setOrderStatus(OrderStatus.PURCHASE);
+            orderRepository.save(order);
             return true;
         } else {
             order.setOrderStatus(OrderStatus.CANCEL);
+            orderRepository.save(order);
             redisService.bulkStockIncrease(eventGameList);
             stockIncrease(eventGameList);
             return false;
