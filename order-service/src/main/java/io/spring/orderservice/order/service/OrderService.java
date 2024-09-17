@@ -46,17 +46,18 @@ public class OrderService {
     public boolean requestOrder(GameIdListDto gameIdList, HttpServletRequest req) {
         List<GameDto> gameDtoList = gameApi.subFind(gameIdList.getGameIdList());
 
-        gameDtoList
-                .forEach(gameDto -> {
+        gameDtoList.forEach(gameDto -> {
                     String key = "eventStock" + gameDto.getGameId();
-                    if(redisService.getEventStock(key) == null){
+                    Integer eventStock = redisService.getEventStock(key);
+                    if(eventStock == null && gameDto.getEventStock() > 0){
                         redisService.setEventStock(key, gameDto.getEventStock());
                     }
                 });
 
         int totalPrice = gameDtoList.stream()
                 .peek(gameDto -> {
-                    if (redisService.getEventStock("eventStock" + gameDto.getGameId()) > 0) {
+                    Integer eventStock = redisService.getEventStock("eventStock" + gameDto.getGameId());
+                    if (eventStock != null && eventStock > 0) {
                         gameDto.setPrice((int) (gameDto.getPrice() * 0.8));
                     }
                 })
@@ -77,9 +78,12 @@ public class OrderService {
         orderGameRepository.saveAll(orderGameList);
 
         List<Long> eventGameList = gameDtoList.stream()
-                        .map(GameDto::getGameId)
-                        .filter(gameId -> redisService.getEventStock("eventStock" + gameId) > 0)
-                        .toList();
+                .map(GameDto::getGameId)
+                .filter(gameId -> {
+                    Integer eventStock = redisService.getEventStock("eventStock" + gameId);
+                    return eventStock != null && eventStock > 0;
+                })
+                .toList();
 
         eventGameList.forEach(gameId -> redisService.stockDecrease("eventStock" + gameId));
         stockDecrease(eventGameList);
