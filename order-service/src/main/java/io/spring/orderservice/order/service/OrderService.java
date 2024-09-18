@@ -44,60 +44,34 @@ public class OrderService {
     private final RedisService redisService;
 
     public boolean requestOrder(GameIdListDto gameIdList, HttpServletRequest req) {
+        // game-service 요청
         List<GameDto> gameDtoList = gameApi.subFind(gameIdList.getGameIdList());
 
+        // Redis의 multiGet을 이용하여 GameID에 대한 재고를 Map으로 저장
         Map<String, Integer> eventStockMap = redisService.getMultiEventStock(gameDtoList);
-        int totalPrice = gameDtoList.stream()
-                .peek(gameDto -> {
-                    Integer eventStock = eventStockMap.get("eventStock" + gameDto.getGameId());
-                    if (eventStock != null && eventStock > 0) {
-                        gameDto.setPrice((int) (gameDto.getPrice() * 0.8));
-                    }
-                })
-                .mapToInt(GameDto::getPrice)
-                .sum();
 
+        // 주문하려는 총 가격 저장 
+        int totalPrice = getTotalPrice(gameDtoList, eventStockMap);
+        
+        // 주문 테이블에 저장
         Order order = orderRepository.save(Order.toEntity(totalPrice, getMemberId(req)));
-
-        List<OrderGame> orderGameList = gameDtoList.stream()
-                .map(gameDto -> OrderGame.builder()
-                        .price(gameDto.getPrice())
-                        .gameId(gameDto.getGameId())
-                        .orderId(order.getOrderId())
-                        .build()
-                )
-                .collect(Collectors.toList());
-
+        
+        // 주문&게임 테이블에 저장
+        List<OrderGame> orderGameList = createOrderGameList(gameDtoList, order);
         orderGameRepository.saveAll(orderGameList);
-
-        List<Long> eventGameList = gameDtoList.stream()
-                .filter(gameDto -> {
-                    Integer eventStock = eventStockMap.get("eventStock" + gameDto.getGameId());
-                    return eventStock != null && eventStock > 0;
-                })
-                .map(GameDto::getGameId)
-                .toList();
+        
+        // 할인 재고가 있는 게임 ID 리스트 추출
+        List<Long> eventGameList = createEventGameList(gameDtoList, eventStockMap);
+        
+        // 게임 ID 리스트를 Redis에서 재고 1 감소
         redisService.bulkStockDecrease(eventGameList);
+        // 비동기 통신으로 DB 재고 1 감소
         stockDecrease(eventGameList);
-
-        PaymentRequestDto paymentRequestDto = PaymentRequestDto.builder()
-                .totalPrice(order.getTotalPrice())
-                .paymentWay(PaymentWay.CARD_PAYMENT)
-                .orderId(order.getOrderId())
-                .build();
-        PaymentResponseDto paymentResponseDto = paymentApi.payment(paymentRequestDto);
-
-        if(paymentResponseDto.isSuccess()){
-            order.setOrderStatus(OrderStatus.PURCHASE);
-            orderRepository.save(order);
-            return true;
-        } else {
-            order.setOrderStatus(OrderStatus.CANCEL);
-            orderRepository.save(order);
-            redisService.bulkStockIncrease(eventGameList);
-            stockIncrease(eventGameList);
-            return false;
-        }
+        
+        // payment-service 요청
+        PaymentResponseDto paymentResponseDto = processPayment(order);
+        // 결제 결과에 따른 핸들링
+        return handlingPaymentResult(paymentResponseDto, order, eventGameList);
     }
 
     public List<OrderResponseDto> list(int pageNo, int size, HttpServletRequest req) {
@@ -132,6 +106,62 @@ public class OrderService {
             return true;
         }
         return false;
+    }
+
+    private boolean handlingPaymentResult(PaymentResponseDto paymentResponseDto, Order order, List<Long> eventGameList) {
+        if(paymentResponseDto.isSuccess()){
+            order.setOrderStatus(OrderStatus.PURCHASE);
+            orderRepository.save(order);
+            return true;
+        } else {
+            order.setOrderStatus(OrderStatus.CANCEL);
+            orderRepository.save(order);
+            redisService.bulkStockIncrease(eventGameList);
+            stockIncrease(eventGameList);
+            return false;
+        }
+    }
+
+    private PaymentResponseDto processPayment(Order order) {
+        PaymentRequestDto paymentRequestDto = PaymentRequestDto.builder()
+                .totalPrice(order.getTotalPrice())
+                .paymentWay(PaymentWay.CARD_PAYMENT)
+                .orderId(order.getOrderId())
+                .build();
+        return paymentApi.payment(paymentRequestDto);
+    }
+
+    private List<Long> createEventGameList(List<GameDto> gameDtoList, Map<String, Integer> eventStockMap) {
+        return gameDtoList.stream()
+                .filter(gameDto -> {
+                    Integer eventStock = eventStockMap.get("eventStock" + gameDto.getGameId());
+                    return eventStock != null && eventStock > 0;
+                })
+                .map(GameDto::getGameId)
+                .toList();
+    }
+
+    private List<OrderGame> createOrderGameList(List<GameDto> gameDtoList, Order order) {
+        return gameDtoList.stream()
+                .map(gameDto -> OrderGame.builder()
+                        .price(gameDto.getPrice())
+                        .gameId(gameDto.getGameId())
+                        .orderId(order.getOrderId())
+                        .build()
+                )
+                .collect(Collectors.toList());
+    }
+
+    private int getTotalPrice(List<GameDto> gameDtoList, Map<String, Integer> eventStockMap) {
+        return gameDtoList.stream()
+                .peek(gameDto -> {
+                    Integer eventStock = eventStockMap.get("eventStock" + gameDto.getGameId());
+                    if (eventStock != null && eventStock > 0) {
+                        gameDto.setPrice((int) (gameDto.getPrice() * 0.8));
+                    }
+                })
+                .mapToInt(GameDto::getPrice)
+                .sum();
     }
 
     @Async
