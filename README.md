@@ -5,68 +5,35 @@
   <h4>☑ 선착순 구매 할인</h4>
 </div>
 
-<span id="table"></span>
-## 🗂️ 목차
-1. [프로젝트 소개](#1)
-2. [개발 환경](#2)
-3. [기술 스택](#3)
-4. [API 명세서](#4)
-5. [프로젝트 아키텍쳐](#5)
-6. [프로젝트 주요 기능](#6)
-7. [트러블 슈팅](#7)
-8. [기술적 의사 결정](#8)
-9. [보완 필요](#9)
-<br><br><br><br>
-
-<span id="1"></span>
 ## 🏭1. 프로젝트 소개
 Play Heaven은 <b>Spring 기반의 E-Commerce 디지털 게임 유통 플랫폼</b>을 주제로 한 프로젝트입니다.<br>
 누구나 판매자가 되어 게임을 등록할 수 있으며, 판매자가 원하는 수량만큼 할인할 재고를 등록하게 될 경우 게임을 구매하는 사용자들은 할인을 받을 수 있습니다.
-
-<br><br>
-[목차](#table)
 <br><br><br><br>
 
-<span id="2"></span>
 ## ⚙2. 개발 환경
   - **JDK Version : JDK 17**
   - **Database : MySQL**
   - **Build Tool : IntelliJ IDEA**
-
-<br><br>
-[목차](#table)
 <br><br><br><br>
 
-<span id="3"></span>
 ## ⚙3. 기술 스택
   - ![SpringBoot](https://img.shields.io/badge/Spring%20Boot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
   - ![Database](https://img.shields.io/badge/MySQL-00000F?style=for-the-badge&logo=mysql&logoColor=white)
   - ![Redis](https://img.shields.io/badge/redis-%23DD0031.svg?&style=for-the-badge&logo=redis&logoColor=white)
   - ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
-
-<br><br>
-[목차](#table)
 <br><br><br><br>
 
-<span id="4"></span>
 ## 📙4. API 명세서
 <a href="https://documenter.getpostman.com/view/3667234/2sAXjRXVfu">API 명세서</a>는 링크를 통해 확인할 수 있습니다.
-
-<br><br>
-[목차](#table)
 <br><br><br><br>
 
-<span id="5"></span>
 ## 📽️5. 프로젝트 아키텍쳐
 ### ERD
 <img src="https://github.com/calmnature/PlayHeaven/blob/develop/github_img/ERD.png" alt="ERD 이미지"><br>
 ### Micro Service Architecture
 <img src="https://github.com/calmnature/PlayHeaven/blob/develop/github_img/MSA.png" alt="Architecture"><br>
-<br><br>
-[목차](#table)
 <br><br><br><br>
 
-<span id="6"></span>
 ## 🔍6. 프로젝트 주요 기능
 1. 사용자 (Member Service)
   - 회원 가입
@@ -88,12 +55,8 @@ Play Heaven은 <b>Spring 기반의 E-Commerce 디지털 게임 유통 플랫폼<
     - 위시리스트 삭제
 4. 결제 (Payment Service)
   - 결제
-
-<br><br>
-[목차](#table)
 <br><br><br><br>
 
-<span id="7"></span>
 ## 💣7. 트러블 슈팅
 <details>
   <summary><b>JPA Pagination 에러 발생</b></summary>
@@ -116,11 +79,19 @@ Play Heaven은 <b>Spring 기반의 E-Commerce 디지털 게임 유통 플랫폼<
   - <a href="https://bestdevelop-lab.tistory.com/181">상세 트러블 슈팅 링크</a>
 </details>
 
-<br><br>
-[목차](#table)
+<details>
+  <summary><b>JMeter를 이용한 대용량 트래픽 발생 시 에러 발생</b></summary>
+  - <b>발생 에러</b> : java.net.<b>BindException</b> : Address already in use<br>
+  - <b>원인</b> : @Async 어노테이션 사용 후 대용량 트래픽 발생 시 발생한 에러로 <b>기본 최대 접속 가능 포트는 5,000개</b>이기 때문에 5,000개를 초과할 경우 발생<br>
+  - <b>해결</b> : <b>레지스트 편집기에서 MaxUserPort를 생성</b>하여 최대 포트 수를 65,534개로 설정<br>
+    <br>
+  - <b>발생 에러</b> : java.sql.<b>SQLTransientConnectionException</b> : HikariPool-1 - Connection is not available<br>
+  - <b>원인</b> : 주문 요청 API에서 @Transactional 어노테이션으로 트랜잭션을 길게 가져갔기 때문에 <b>DB Connection이 즉시 반납되지 않으면서 DB Connection이 초과</b>하여 발생한 에러<br>
+  - <b>해결</b> : @Transactional 어노테이션을 삭제하여 <b>리파지토리의 save() 메서드가 종료됨과 동시에 DB Connection을 반환</b>하도록 변경<br>
+  - <a href="https://bestdevelop-lab.tistory.com/200">상세 트러블 슈팅 링크</a>
+</details>
 <br><br><br><br>
 
-<span id="8"></span>
 ## 💡8. 기술적 의사 결정
 <details>
   <summary><b>Database vs Redis</b></summary>
@@ -147,12 +118,8 @@ Play Heaven은 <b>Spring 기반의 E-Commerce 디지털 게임 유통 플랫폼<
   - <a href="https://bestdevelop-lab.tistory.com/174">Rest Template / Feign Clinet / Web Client 비교</a><br>
   - <a href="https://bestdevelop-lab.tistory.com/175">Feign Client 선택 이유 및 사용 예제</a><br>
 </details>
-
-<br><br>
-[목차](#table)
 <br><br><br><br>
 
-<span id="9"></span>
 ## ➕9. 프로젝트 보완 사항
 - Redis 캐싱
   - DB I/O를 이용한 JMeter 성능 측정
@@ -160,6 +127,3 @@ Play Heaven은 <b>Spring 기반의 E-Commerce 디지털 게임 유통 플랫폼<
   - Redis 캐싱을 이용한 JMeter 성능 측정
 - 분산 락
 - 주문 → 결제 시 동기 → 비동기 통신
-
-<br><br>
-[목차](#table)
